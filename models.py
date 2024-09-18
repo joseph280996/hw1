@@ -63,7 +63,7 @@ class PretrainedResNetForBirdSnap10(torch.nn.Module):
         '''
         self.n_trainable_layers = int(n_trainable_layers)
         # Define last n layers as the trainable ones
-        self.trainable_layer_names = self.layer_anmes[-self.n_trainable_layers:] # TODO FIXME
+        self.trainable_layer_names = self.layer_names[-self.n_trainable_layers:] # TODO FIXME
         self.trainable_params = dict()
         n_params = 0
         # Iterate over parameters in our current model
