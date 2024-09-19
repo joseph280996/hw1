@@ -61,11 +61,11 @@ def train_model(model, device, tr_loader, va_loader,
                 optimizer.zero_grad()
     
                 logits_BC = model(x.to(device))
-                loss_xent = xent_loss_func(logits_BC, y_B) / logits_BC.size(0)
+                loss_xent = xent_loss_func(logits_BC, y_B)
                 # Hint 1: use provided xent_loss_func
                 # HInt 2: compute average over examples in current batch
 
-                loss_l2 = l2pen_mag * sum(torch.sum(param ** 2) for param in model.parameters() if param.requires_grad) # TODO FIXME 
+                loss_l2 = l2pen_mag * sum(torch.sum(param ** 2) for param in model.trainable_params.values()) # TODO FIXME 
                 # Hint: access weights of last layer in model.trainable_params
                 # No need to penalize bias params, those less likely to overfit
 
@@ -96,7 +96,7 @@ def train_model(model, device, tr_loader, va_loader,
             va_err = 0
             for xva_B3HW, yva_B in va_loader:
                 logits_BC = model(xva_B3HW.to(device))
-                va_xent += xent_loss_func(logits_BC, yva_B) # TODO FIXME
+                va_xent += xent_loss_func(logits_BC, yva_B).item() / n_valid # TODO FIXME
                 # Hint: Make sure va_ent is per-example average over val set
                 # That way, its numerical scale will be same as tr_xent
 
@@ -104,7 +104,6 @@ def train_model(model, device, tr_loader, va_loader,
                     logits_BC.argmax(axis=1).detach().cpu().numpy(),
                     yva_B, normalize=False)
             va_err_rate = va_err / n_valid
-
         # Update diagnostics and progress bar
         epochs.append(epoch)
         tr_info['loss'].append(tr_loss)
