@@ -61,11 +61,11 @@ def train_model(model, device, tr_loader, va_loader,
                 optimizer.zero_grad()
     
                 logits_BC = model(x.to(device))
-                loss_xent = torch.tensor((0.4567,), device=device, requires_grad=True) # TODO FIXME 
+                loss_xent = xent_loss_func(logits_BC, y_B) / logits_BC.size(0)
                 # Hint 1: use provided xent_loss_func
                 # HInt 2: compute average over examples in current batch
 
-                loss_l2 = torch.tensor((0.0,),  device=device, requires_grad=True) # TODO FIXME 
+                loss_l2 = l2pen_mag * sum(torch.sum(param ** 2) for param in model.parameters() if param.requires_grad) # TODO FIXME 
                 # Hint: access weights of last layer in model.trainable_params
                 # No need to penalize bias params, those less likely to overfit
 
@@ -96,7 +96,7 @@ def train_model(model, device, tr_loader, va_loader,
             va_err = 0
             for xva_B3HW, yva_B in va_loader:
                 logits_BC = model(xva_B3HW.to(device))
-                va_xent += 0.3 * (1.0 - epoch / n_epochs) # TODO FIXME
+                va_xent += xent_loss_func(logits_BC, yva_B) # TODO FIXME
                 # Hint: Make sure va_ent is per-example average over val set
                 # That way, its numerical scale will be same as tr_xent
 
@@ -130,13 +130,14 @@ def train_model(model, device, tr_loader, va_loader,
         else:
             curr_wait += 1
                 
-        wait_enough = False # TODO FIXME. When should early stopping happen?
+        wait_enough = curr_wait >= n_epochs_without_va_improve_before_early_stop
         # Hint: Compare the current wait to the provided hyperparameter
         # n_epochs_without_va_improve_before_early_stop
 
         if do_early_stopping and wait_enough:
             print("Stopped early.")
             break
+
     print(f"Finished after epoch {epoch}, best epoch={best_epoch}")
     print("best va_xent %.3f" % best_va_loss)
     print("best tr_err %.3f" % best_tr_err_rate)
