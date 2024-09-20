@@ -96,7 +96,7 @@ def train_model(model, device, tr_loader, va_loader,
             va_err = 0
             for xva_B3HW, yva_B in va_loader:
                 logits_BC = model(xva_B3HW.to(device))
-                va_xent += xent_loss_func(logits_BC, yva_B).item() / n_valid # TODO FIXME
+                va_xent += xent_loss_func(logits_BC, yva_B, reduction='sum').item() / n_valid # TODO FIXME
                 # Hint: Make sure va_ent is per-example average over val set
                 # That way, its numerical scale will be same as tr_xent
 
