@@ -12,7 +12,7 @@ def train_model(model, device, tr_loader, va_loader,
                 ):
     ''' Train model via stochastic gradient descent.
 
-    Assumes provided model's trainable params already set to initial values.
+    Assumes provided mo['output.weights']del's trainable params already set to initial values.
 
     Returns
     -------
@@ -59,13 +59,13 @@ def train_model(model, device, tr_loader, va_loader,
             pbar_info['batch_done'] = 0
             for bb, (x, y_B) in enumerate(tr_loader):
                 optimizer.zero_grad()
-    
                 logits_BC = model(x.to(device))
-                loss_xent = xent_loss_func(logits_BC, y_B)
+                loss_xent = xent_loss_func(logits_BC, y_B.to(device))
                 # Hint 1: use provided xent_loss_func
                 # HInt 2: compute average over examples in current batch
 
-                loss_l2 = l2pen_mag * sum(torch.sum(param ** 2) for param in model.trainable_params.values()) # TODO FIXME 
+                loss_l2 = l2pen_mag * torch.sum(model.trainable_params['output.weight'] ** 2)
+
                 # Hint: access weights of last layer in model.trainable_params
                 # No need to penalize bias params, those less likely to overfit
 
@@ -73,7 +73,7 @@ def train_model(model, device, tr_loader, va_loader,
                 loss.backward()
                 optimizer.step()
     
-                pbar_info['batch_done'] += 1        
+                pbar_info['batch_done'] += 1
                 progressbar.set_postfix(pbar_info)
     
                 # Increment loss metrics we track for debugging/diagnostics
@@ -96,7 +96,7 @@ def train_model(model, device, tr_loader, va_loader,
             va_err = 0
             for xva_B3HW, yva_B in va_loader:
                 logits_BC = model(xva_B3HW.to(device))
-                va_xent += xent_loss_func(logits_BC, yva_B, reduction='sum').item() / n_valid # TODO FIXME
+                va_xent += xent_loss_func(logits_BC, yva_B.to(device), reduction='sum').item() / n_valid # TODO FIXME
                 # Hint: Make sure va_ent is per-example average over val set
                 # That way, its numerical scale will be same as tr_xent
 
